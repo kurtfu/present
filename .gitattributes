@@ -1,0 +1,5 @@
+* text=auto eol=lf
+
+*.h text filter=untabify
+*.c text filter=untabify
+*.s text

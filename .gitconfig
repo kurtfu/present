@@ -1,0 +1,3 @@
+[filter "untabify"]
+	clean=expand --initial -t 4
+	smudge=expand --initial -t 4
