@@ -124,13 +124,12 @@ static uint8_t const g_sbox_inv[] = {0x05u, 0x0Eu, 0x0Fu, 0x08u, \
 
 /*! \brief Add key layer of the algorithm.
  *
- *  The function adjust the encryption round key and adds it to the text block.
- *  Add key operation is simply an XOR operation of \p p_text and \p p_key.
- *  For further information about the PRESENT add key layer, see the article's
- *  section 3.
+ *  The function adjust \p p_key and adds it to \p p_text. Add key operation
+ *  is simply an XOR operation of \p p_text and \p p_key. For further
+ *  information about the PRESENT add key layer, see article's section 3.
  *
- *  \warning The function assumes the parameter \a p_text points a memory block
- *           with length of \ref PRESENT_CRYPT_SIZE and the parameter \a p_key
+ *  \warning The function assumes parameter \a p_text points a memory block
+ *           with length of \ref PRESENT_CRYPT_SIZE and parameter \a p_key
  *           points a memory block with length of \ref PRESENT_KEY_SIZE.
  *
  *  \param p_text Pointer of the text block.
@@ -317,7 +316,7 @@ present_encrypt(uint8_t *p_text, uint8_t const *p_key)
     uint8_t subkey[PRESENT_KEY_SIZE];
     uint8_t round;
 
-    /* Copy key into a buffer to keep original key value unchanged during
+    /* Copy the key into a buffer to keep original value unchanged during
      * the encryption process.
      */
     memcpy(subkey, p_key, PRESENT_KEY_SIZE);
@@ -381,8 +380,8 @@ present_add_key(uint8_t *p_text, uint8_t const *p_key)
 {
     uint8_t byte_idx;
 
-    /* Move the key pointer to the start byte of the key part that specified
-     * in the article. For further information, see the article's section 3.
+    /* Move key pointer to the start byte of the key part that specified in
+     * the article. For further information, see article's section 3.
      */
     p_key += PRESENT_KEY_OFFSET;
 
@@ -624,7 +623,7 @@ present_rotate_key_left(uint8_t *p_key)
     p_block   = (uint16_t *)p_key;
     block_idx = 0u;
 
-    /* Fill the buffer with the values that changes during the first loop. */
+    /* Fill the buffer with values that changes during the first loop. */
     for (; block_idx < PRESENT_ROTATE_BUFF_SIZE_LEFT; block_idx++) {
         buff[block_idx] = p_block[block_idx];
     }
