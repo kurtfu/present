@@ -42,7 +42,7 @@
 
 /*! \brief Transforms bit number to binary value.
  *
- *  The macro returns nth bit binary equivalent  \a x to its . It shifts
+ *  The macro returns nth bit binary equivalent \a x to its. It shifts
  *  binary 1 to left as much as \a x to get the equivalent.
  *
  *  \param x The bit number.
