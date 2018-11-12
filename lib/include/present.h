@@ -85,6 +85,26 @@ extern "C" {
 void
 present_encrypt(uint8_t *p_text, uint8_t const *p_key);
 
+/*! \brief Decrypts the crypted text block.
+ *
+ *  The function decrypts the crypted text block pointed by \a p_text with
+ *  the key value pointed by the parameter \a p_key. The function decrypts
+ *  only one block of data with length of \ref PRESENT_CRYPT_SIZE per call.
+ *  Algorithm of the function is described in the article. For further
+ *  information, see the article.
+ *
+ *  \warning The function assumes parameter \a p_text points a memory block
+ *           with length of \ref PRESENT_CRYPT_SIZE and parameter \a p_key
+ *           points a memory block with length of \ref PRESENT_KEY_SIZE.
+ *
+ *  \param p_text Pointer of the text block.
+ *  \param p_key  Pointer of the crypt key.
+ *
+ *  \return None.
+ */
+void
+present_decrypt(uint8_t *p_text, uint8_t const *p_key);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
