@@ -45,6 +45,11 @@
 /* GLOBAL SYMBOL DEFINITIONS                                                 */
 /*****************************************************************************/
 
+/*! PRESENT key size flag. To use 80-bit key, enable this flag. */
+#define PRESENT_USE_KEY80  (1u)
+/*! PRESENT key size flag. To use 128-bit key, enable this flag. */
+#define PRESENT_USE_KEY128 (0u)
+
 /*! PRESENT crypt block size in bit. */
 #define PRESENT_CRYPT_BIT_SIZE (64u)
 
@@ -52,7 +57,11 @@
 #define PRESENT_CRYPT_SIZE (PRESENT_CRYPT_BIT_SIZE / 8u)
 
 /*! PRESENT key block size in bit. */
-#define PRESENT_KEY_BIT_SIZE (80u)
+#if PRESENT_USE_KEY80
+    #define PRESENT_KEY_BIT_SIZE (80u)
+#elif PRESENT_USE_KEY128
+    #define PRESENT_KEY_BIT_SIZE (128u)
+#endif /* PRESENT_USE_KEY128 */
 
 /*! PRESENT key block size in byte. */
 #define PRESENT_KEY_SIZE (PRESENT_KEY_BIT_SIZE / 8u)

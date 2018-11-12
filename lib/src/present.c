@@ -41,6 +41,18 @@
 #include <string.h>
 
 /*****************************************************************************/
+/* COMPILE TIME ERROR CHECKS                                                 */
+/*****************************************************************************/
+
+#if (!PRESENT_USE_KEY80 && !PRESENT_USE_KEY128)
+    #error "Key size must be configured!"
+#endif
+
+#if (PRESENT_USE_KEY80 && PRESENT_USE_KEY128)
+    #error "Only one key size can be chosen!"
+#endif
+
+/*****************************************************************************/
 /* STATIC SYMBOL DEFINITIONS                                                 */
 /*****************************************************************************/
 
@@ -57,7 +69,11 @@
 #define PRESENT_KEY_BLOCK_SIZE (PRESENT_KEY_BIT_SIZE / 16u)
 
 /*! Buffer size that holds the rotated blocks during left shift. */
-#define PRESENT_ROTATE_BUFF_SIZE_LEFT (2u)
+#if PRESENT_USE_KEY80
+    #define PRESENT_ROTATE_BUFF_SIZE_LEFT (2u)
+#elif PRESENT_USE_KEY128
+    #define PRESENT_ROTATE_BUFF_SIZE_LEFT (5u)
+#endif /* PRESENT_USE_KEY128 */
 
 /*! Buffer size that holds the rotated blocks during right shift. */
 #define PRESENT_ROTATE_BUFF_SIZE_RIGHT (4u)
@@ -66,19 +82,35 @@
 #define PRESENT_ROTATION_POINT_LEFT (3u)
 
 /*! The point where LSB and MSB came side to side after rotation to right. */
-#define PRESENT_ROTATION_POINT_RIGHT (1u)
+#if PRESENT_USE_KEY80
+    #define PRESENT_ROTATION_POINT_RIGHT (1u)
+#elif PRESENT_USE_KEY128
+    #define PRESENT_ROTATION_POINT_RIGHT (4u)
+#endif /* PRESENT_USE_KEY128 */
 
 /*! Block count to be shifted after the rotation point during left shift. */
-#define PRESENT_UNROTATED_BLOCK_COUNT_LEFT (1u)
+#if PRESENT_USE_KEY80
+    #define PRESENT_UNROTATED_BLOCK_COUNT_LEFT (1u)
+#elif PRESENT_USE_KEY128
+    #define PRESENT_UNROTATED_BLOCK_COUNT_LEFT (4u)
+#endif /* PRESENT_USE_KEY128 */
 
 /*! Block count to be shifted after the rotation point during right shift. */
 #define PRESENT_UNROTATED_BLOCK_COUNT_RIGHT (3u)
 
 /*! Offset value of the LSB bits source block during left shift. */
-#define PRESENT_ROTATION_LSB_OFFSET (2u)
+#if PRESENT_USE_KEY80
+    #define PRESENT_ROTATION_LSB_OFFSET (2u)
+#elif PRESENT_USE_KEY128
+    #define PRESENT_ROTATION_LSB_OFFSET (5u)
+#endif /* PRESENT_USE_KEY128 */
 
 /*! Offset value of the MSB bits source block during left shift. */
-#define PRESENT_ROTATION_MSB_OFFSET (1u)
+#if PRESENT_USE_KEY80
+    #define PRESENT_ROTATION_MSB_OFFSET (1u)
+#elif PRESENT_USE_KEY128
+    #define PRESENT_ROTATION_MSB_OFFSET (4u)
+#endif /* PRESENT_USE_KEY128 */
 
 /*****************************************************************************/
 /* SPECIAL TYPE DEFINITIONS                                                  */
@@ -564,11 +596,22 @@ present_update_encrypt_key(uint8_t *p_key, uint8_t round_counter)
 
     low_nibble = p_key[PRESENT_KEY_SIZE - 1] & 0x0Fu;
 
+#if PRESENT_USE_KEY128
+    /* Substitute the MSB low nibble if 128-bit key is used. */
+    low_nibble = g_sbox[low_nibble];
+#endif /* PRESENT_USE_KEY128 */
+
     p_key[PRESENT_KEY_SIZE - 1] = (high_nibble << 4) | low_nibble;
 
+#if PRESENT_USE_KEY80
     /* XOR the from 15th to 19th bits with the round counter. */
     p_key[2] ^= round_counter >> 1;
     p_key[1] ^= round_counter << 7;
+#else /* PRESENT_USE_KEY128 */
+    /* XOR the from 62th to 66th bits with the round counter. */
+    p_key[8] ^= round_counter >> 2;
+    p_key[7] ^= round_counter << 6;
+#endif /* PRESENT_USE_KEY128 */
 }
 
 static void
@@ -577,15 +620,26 @@ present_update_decrypt_key(uint8_t *p_key, uint8_t round_counter)
     uint8_t high_nibble;
     uint8_t low_nibble;
 
+#if PRESENT_USE_KEY80
     /* XOR the from 15th to 19th bits with the round counter. */
     p_key[2] ^= round_counter >> 1;
     p_key[1] ^= round_counter << 7;
+#else /* PRESENT_USE_KEY128 */
+    /* XOR the from 62th to 66th bits with the round counter. */
+    p_key[8] ^= round_counter >> 2;
+    p_key[7] ^= round_counter << 6;
+#endif /* PRESENT_USE_KEY128 */
 
     /* Substitute the MSB high nibble of the key. */
     high_nibble = (p_key[PRESENT_KEY_SIZE - 1] & 0xF0u) >> 4;
     high_nibble = g_sbox_inv[high_nibble];
 
     low_nibble = p_key[PRESENT_KEY_SIZE - 1] & 0x0Fu;
+
+#if PRESENT_USE_KEY128
+    /* Substitute the MSB low nibble if 128-bit key is used. */
+    low_nibble = g_sbox_inv[low_nibble];
+#endif /* PRESENT_USE_KEY128 */
 
     p_key[PRESENT_KEY_SIZE - 1] = (high_nibble << 4) | low_nibble;
 
