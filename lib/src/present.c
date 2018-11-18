@@ -41,6 +41,12 @@
 #include <string.h>
 
 /*****************************************************************************/
+/* PROJECT LIBRARIES                                                         */
+/*****************************************************************************/
+
+#include <assert.h>
+
+/*****************************************************************************/
 /* COMPILE TIME ERROR CHECKS                                                 */
 /*****************************************************************************/
 
@@ -58,6 +64,12 @@
 
 /*! PRESENT algorithm round count. */
 #define PRESENT_ROUND_COUNT (31u)
+
+/*! Minimum possible count of the PRESENT loop. */
+#define PRESENT_ROUND_COUNT_MIN (1u)
+
+/*! Maximum possible count of the PRESENT loop. */
+#define PRESENT_ROUND_COUNT_MAX (31u)
 
 /*! Start point offset of the key part that used in the crypt process. */
 #define PRESENT_KEY_OFFSET (PRESENT_KEY_SIZE - PRESENT_CRYPT_SIZE)
@@ -348,6 +360,9 @@ present_encrypt(uint8_t *p_text, uint8_t const *p_key)
     uint8_t subkey[PRESENT_KEY_SIZE];
     uint8_t round;
 
+    ASSERT(NULL != p_text);
+    ASSERT(NULL != p_key);
+
     /* Copy the key into a buffer to keep original value unchanged during
      * the encryption process.
      */
@@ -375,6 +390,9 @@ present_decrypt(uint8_t *p_text, uint8_t const *p_key)
 {
     uint8_t subkey[PRESENT_KEY_SIZE];
     uint8_t round;
+
+    ASSERT(NULL != p_text);
+    ASSERT(NULL != p_key);
 
     /* Copy the key into a buffer to keep original value unchanged during
      * the decryption process.
@@ -412,6 +430,9 @@ present_add_key(uint8_t *p_text, uint8_t const *p_key)
 {
     uint8_t byte_idx;
 
+    ASSERT(NULL != p_text);
+    ASSERT(NULL != p_key);
+
     /* Move key pointer to the start byte of the key part that specified in
      * the article. For further information, see article's section 3.
      */
@@ -431,6 +452,8 @@ present_substitution(uint8_t *p_text, present_op_t op)
     uint8_t        low_nibble;
     uint8_t        byte_idx;
 
+    ASSERT(NULL != p_text);
+
     /* If the operation is the encryption, use substitution box in further
      * steps. Otherwise, use the inverse substitution box.
      */
@@ -441,6 +464,9 @@ present_substitution(uint8_t *p_text, present_op_t op)
     case PRESENT_OP_DECRYPT:
         p_sbox = g_sbox_inv;
         break;
+    default:
+        /* An undefined operation occurred. Use forced assertion. */
+        ASSERT(0);
     }
 
     /* Replace all the bytes in the text block. */
@@ -458,6 +484,8 @@ present_substitution(uint8_t *p_text, present_op_t op)
 static void
 present_permutation(uint8_t *p_text, present_op_t op)
 {
+    ASSERT(NULL != p_text);
+
     switch (op) {
     case PRESENT_OP_ENCRYPT:
         present_encrypt_permutation(p_text);
@@ -465,6 +493,9 @@ present_permutation(uint8_t *p_text, present_op_t op)
     case PRESENT_OP_DECRYPT:
         present_decrypt_permutation(p_text);
         break;
+    default:
+        /* An undefined operation occurred. Use forced assertion. */
+        ASSERT(0);
     }
 }
 
@@ -475,6 +506,8 @@ present_encrypt_permutation(uint8_t *p_text)
     uint8_t base_bit;
     uint8_t base_byte;
     uint8_t bit_idx;
+
+    ASSERT(NULL != p_text);
 
     /* Clear buffer first to do logical OR'ing directly. */
     memset(buff, 0u, sizeof(buff));
@@ -526,6 +559,8 @@ present_decrypt_permutation(uint8_t *p_text)
     uint8_t base_byte;
     uint8_t bit_idx;
 
+    ASSERT(NULL != p_text);
+
     /* Clear buffer first to do logical OR'ing directly. */
     memset(buff, 0u, sizeof(buff));
 
@@ -571,6 +606,10 @@ present_decrypt_permutation(uint8_t *p_text)
 static void
 present_update_key(uint8_t *p_key, uint8_t round_counter, present_op_t op)
 {
+    ASSERT(NULL != p_key);
+    ASSERT(round_counter >= PRESENT_ROUND_COUNT_MIN);
+    ASSERT(round_counter <= PRESENT_ROUND_COUNT_MAX);
+
     switch (op) {
     case PRESENT_OP_ENCRYPT:
         present_update_encrypt_key(p_key, round_counter);
@@ -578,6 +617,9 @@ present_update_key(uint8_t *p_key, uint8_t round_counter, present_op_t op)
     case PRESENT_OP_DECRYPT:
         present_update_decrypt_key(p_key, round_counter);
         break;
+    default:
+        /* An undefined operation occurred. Use forced assertion. */
+        ASSERT(0);
     }
 }
 
@@ -586,6 +628,10 @@ present_update_encrypt_key(uint8_t *p_key, uint8_t round_counter)
 {
     uint8_t high_nibble;
     uint8_t low_nibble;
+
+    ASSERT(NULL != p_key);
+    ASSERT(round_counter >= PRESENT_ROUND_COUNT_MIN);
+    ASSERT(round_counter <= PRESENT_ROUND_COUNT_MAX);
 
     /* Rotate the key to the left as first step of the key scheduling. */
     present_rotate_key_left(p_key);
@@ -620,6 +666,10 @@ present_update_decrypt_key(uint8_t *p_key, uint8_t round_counter)
     uint8_t high_nibble;
     uint8_t low_nibble;
 
+    ASSERT(NULL != p_key);
+    ASSERT(round_counter >= PRESENT_ROUND_COUNT_MIN);
+    ASSERT(round_counter <= PRESENT_ROUND_COUNT_MAX);
+
 #if PRESENT_USE_KEY80
     /* XOR the from 15th to 19th bits with the round counter. */
     p_key[2] ^= round_counter >> 1;
@@ -652,6 +702,8 @@ present_generate_decrypt_key(uint8_t *p_key)
 {
     uint8_t round;
 
+    ASSERT(NULL != p_key);
+
     /* Start the loop from the first round. */
     round = 1u;
 
@@ -673,6 +725,8 @@ present_rotate_key_left(uint8_t *p_key)
     uint8_t const unrotated_blocks = PRESENT_UNROTATED_BLOCK_COUNT_LEFT;
     uint8_t const lsb_offset       = PRESENT_ROTATION_LSB_OFFSET;
     uint8_t const msb_offset       = PRESENT_ROTATION_MSB_OFFSET;
+
+    ASSERT(NULL != p_key);
 
     p_block   = (uint16_t *)p_key;
     block_idx = 0u;
@@ -713,6 +767,8 @@ present_rotate_key_right(uint8_t *p_key)
     uint8_t const rotation_point   = PRESENT_ROTATION_POINT_RIGHT;
     uint8_t const unrotated_blocks = PRESENT_UNROTATED_BLOCK_COUNT_RIGHT;
     uint8_t const place_offset     = PRESENT_ROTATION_POINT_RIGHT + 1u;
+
+    ASSERT(NULL != p_key);
 
     p_block   = (uint16_t *)p_key;
     block_idx = 0u;
