@@ -50,6 +50,10 @@
 /* COMPILE TIME ERROR CHECKS                                                 */
 /*****************************************************************************/
 
+#if !CONF_PRESENT
+    #error "PRESENT must be configured!"
+#endif
+
 #if (!PRESENT_USE_KEY80 && !PRESENT_USE_KEY128)
     #error "Key size must be configured!"
 #endif
@@ -58,18 +62,17 @@
     #error "Only one key size can be chosen!"
 #endif
 
+#if (PRESENT_ROUND_COUNT < PRESENT_ROUND_COUNT_MIN)
+    #errror "Round count must be greater!"
+#endif
+
+#if (PRESENT_ROUND_COUNT > PRESENT_ROUND_COUNT_MAX)
+    #errror "Round count must be fewer!"
+#endif
+
 /*****************************************************************************/
 /* STATIC SYMBOL DEFINITIONS                                                 */
 /*****************************************************************************/
-
-/*! PRESENT algorithm round count. */
-#define PRESENT_ROUND_COUNT (31u)
-
-/*! Minimum possible count of the PRESENT loop. */
-#define PRESENT_ROUND_COUNT_MIN (1u)
-
-/*! Maximum possible count of the PRESENT loop. */
-#define PRESENT_ROUND_COUNT_MAX (31u)
 
 /*! Start point offset of the key part that used in the crypt process. */
 #define PRESENT_KEY_OFFSET (PRESENT_KEY_SIZE - PRESENT_CRYPT_SIZE)

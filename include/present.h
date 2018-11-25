@@ -13,6 +13,9 @@
  *  header or source files were documented in the file which it is declared.
  *  For further information, see its detailed documentation.
  *
+ *  \note Before use the module, configure the \ref conf.h file with respect
+ *        to the system specifications.
+ *
  *  \see <a href=
  *       "https://link.springer.com/chapter/10.1007%2F978-3-540-74735-2_31">
  *       PRESENT: An Ultra-Lightweight Block Cipher</a>
@@ -35,6 +38,8 @@
 #ifndef PRESENT_H
 #define PRESENT_H
 
+#include <conf.h>
+
 /*****************************************************************************/
 /* PROJECT LIBRARIES                                                         */
 /*****************************************************************************/
@@ -44,11 +49,6 @@
 /*****************************************************************************/
 /* GLOBAL SYMBOL DEFINITIONS                                                 */
 /*****************************************************************************/
-
-/*! PRESENT key size flag. To use 80-bit key, enable this flag. */
-#define PRESENT_USE_KEY80  (1u)
-/*! PRESENT key size flag. To use 128-bit key, enable this flag. */
-#define PRESENT_USE_KEY128 (0u)
 
 /*! PRESENT crypt block size in bit. */
 #define PRESENT_CRYPT_BIT_SIZE (64u)
@@ -65,6 +65,12 @@
 
 /*! PRESENT key block size in byte. */
 #define PRESENT_KEY_SIZE (PRESENT_KEY_BIT_SIZE / 8u)
+
+/*! Minimum possible count of the PRESENT loop. */
+#define PRESENT_ROUND_COUNT_MIN (1u)
+
+/*! Maximum possible count of the PRESENT loop. */
+#define PRESENT_ROUND_COUNT_MAX (31u)
 
 /*****************************************************************************/
 /* GLOBAL FUNCTION PROTOTYPES                                                */
