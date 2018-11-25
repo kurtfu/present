@@ -40,6 +40,7 @@ endif
 
 PROJ_PATH  = .
 BIN_PATH   = $(addsuffix /bin, ${PROJ_PATH})
+TEST_PATH  = $(addsuffix /test, ${PROJ_PATH})
 
 #------------------------------------------------------------------------------
 # INPUT & OUTPUT FILE DEFINITIONS
@@ -58,10 +59,18 @@ EXEC := $(addsuffix ${OUT_EXT}, ${EXEC})
 SLIB  = $(addprefix ${BIN_PATH}/, ${PROJ})
 SLIB := $(addsuffix .a, ${SLIB})
 
+TEST_ASM  = $(patsubst ${PROJ_PATH}/%.c,${BIN_PATH}/%.s, ${TEST_SRC})
+TEST_OBJ  = $(patsubst ${PROJ_PATH}/%.c,${BIN_PATH}/%.o, ${TEST_SRC})
+
+TEST_OUT  = $(addprefix ${BIN_PATH}/test/, ${PROJ})
+TEST_OUT := $(addsuffix ${OUT_EXT}, ${TEST_OUT})
+
 BUILD_DEPS = ${OBJ}
+TEST_DEPS  = ${TEST_OBJ}
 
 ifeq (${KEEP_ASM}, YES)
 	BUILD_DEPS += ${ASM}
+	TEST_DEPS  += ${TEST_ASM}
 endif
 
 ifeq (${TYPE}, EXEC)
@@ -74,7 +83,7 @@ endif
 # MAKE RULES
 #------------------------------------------------------------------------------
 
-.PHONY: all build clean rebuild ${OUT}
+.PHONY: all build clean rebuild test ${OUT}
 
 all: build ${OUT}
 	@echo "Project Build Successfully"
@@ -87,6 +96,9 @@ clean:
 	@echo "Project Cleaned Successfully"
 
 rebuild: clean all
+
+test: build ${TEST_OUT}
+	@echo "Test Project Build Successfully"
 
 #------------------------------------------------------------------------------
 # RULE INCLUDES

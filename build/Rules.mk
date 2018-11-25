@@ -39,6 +39,9 @@ ${EXEC}:
 ${SLIB}:
 	${AR} -crv $@ ${OBJ}
 
+${TEST_OUT}: ${TEST_DEPS}
+	${CL} ${CL_FLAGS} -o $@ ${OBJ} ${TEST_OBJ}
+
 ${BIN_PATH}/%.o: ${PROJ_PATH}/%.c
 	@${MKDIR} "$(dir $@)" ||:
 	${CC} ${CC_FLAGS} -c -o $@ $<
@@ -48,5 +51,13 @@ ${BIN_PATH}/%.o: ${PROJ_PATH}/%.s
 	${CC} ${CC_FLAGS} -c -o $@ $<
 
 ${BIN_PATH}/%.s: ${PROJ_PATH}/%.c
+	@${MKDIR} "$(dir $@)" ||:
+	${CC} ${CC_FLAGS} -S -o $@ $<
+
+${BIN_PATH}/%.o: ${TEST_PATH}/%.c
+	@${MKDIR} "$(dir $@)" ||:
+	${CC} ${CC_FLAGS} -c -o $@ $<
+
+${BIN_PATH}/%.s: ${TEST_PATH}/%.c
 	@${MKDIR} "$(dir $@)" ||:
 	${CC} ${CC_FLAGS} -S -o $@ $<
