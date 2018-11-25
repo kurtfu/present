@@ -33,6 +33,9 @@
 void
 assert_failed(unsigned int id, unsigned int line)
 {
+    UNUSED_PARAM(id);
+    UNUSED_PARAM(line);
+
     for(;;) {
         /* INFINITE LOOP! */
     }

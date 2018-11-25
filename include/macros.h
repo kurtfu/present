@@ -62,4 +62,14 @@
  */
 #define BITVAL(var, bit) (((var) & BIT(bit)) >> (bit))
 
+/*! \brief Suspends unused parameter warning.
+ *
+ *  The macro suspends any warning caused by unusing the parameter \a x.
+ *
+ *  \param x The parameter.
+ *
+ *  \return None.
+ */
+#define UNUSED_PARAM(x) ((void)x)
+
 #endif /* MACROS_H */
