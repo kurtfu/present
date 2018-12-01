@@ -14,7 +14,7 @@ PROJ      = present
 # EXEC -> Executable output.
 # SLIB -> Static library.
 
-TYPE      = EXEC
+TYPE      = SLIB
 
 #------------------------------------------------------------------------------
 # SOURCE CONFIGURATIONS
