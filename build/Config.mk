@@ -14,7 +14,7 @@ PROJ      = present
 # EXEC -> Executable output.
 # SLIB -> Static library.
 
-TYPE      = EXEC
+TYPE      = SLIB
 
 #------------------------------------------------------------------------------
 # SOURCE CONFIGURATIONS
@@ -30,7 +30,17 @@ KEEP_ASM  = YES
 # COMPILER AND LINKER CONFIGURATIONS
 #------------------------------------------------------------------------------
 
-# The tag describes the include path of the project. Multiple paths could be
-# added.
+# The tag describes the search path for header files of the project. Multiple
+# paths could be added.
 
 INC_PATH  = ${PROJ_PATH}/include ${PROJ_PATH}/conf
+
+# The tag describes the search path for library files of the project. Multiple
+# paths could be added.
+
+LIB_PATH =
+
+# The tag describes the library files to be included to the project. Multiple
+# libraries could be added.
+
+LIB      =

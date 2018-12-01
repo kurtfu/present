@@ -4,7 +4,7 @@
 
 include build/Config.mk
 include build/Source.mk
-include build/Target.mk
+include build/Tools.mk
 
 #------------------------------------------------------------------------------
 #  CONFIGURATION ERROR CHECKS
