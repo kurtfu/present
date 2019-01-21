@@ -656,11 +656,11 @@ present_update_encrypt_key(uint8_t *p_key, uint8_t round_counter)
     p_key[PRESENT_KEY_SIZE - 1] = (high_nibble << 4) | low_nibble;
 
 #if PRESENT_USE_KEY80
-    /* XOR the from 15th to 19th bits with the round counter. */
+    /* XOR 15th to 19th bits with the round counter. */
     p_key[2] ^= round_counter >> 1;
     p_key[1] ^= round_counter << 7;
 #else /* PRESENT_USE_KEY128 */
-    /* XOR the from 62th to 66th bits with the round counter. */
+    /* XOR 62th to 66th bits with the round counter. */
     p_key[8] ^= round_counter >> 2;
     p_key[7] ^= round_counter << 6;
 #endif /* PRESENT_USE_KEY128 */
@@ -677,11 +677,11 @@ present_update_decrypt_key(uint8_t *p_key, uint8_t round_counter)
     ASSERT(round_counter <= PRESENT_ROUND_COUNT_MAX);
 
 #if PRESENT_USE_KEY80
-    /* XOR the from 15th to 19th bits with the round counter. */
+    /* XOR 15th to 19th bits with the round counter. */
     p_key[2] ^= round_counter >> 1;
     p_key[1] ^= round_counter << 7;
 #else /* PRESENT_USE_KEY128 */
-    /* XOR the from 62th to 66th bits with the round counter. */
+    /* XOR 62th to 66th bits with the round counter. */
     p_key[8] ^= round_counter >> 2;
     p_key[7] ^= round_counter << 6;
 #endif /* PRESENT_USE_KEY128 */
