@@ -86,6 +86,9 @@
 /*! Key size in 16-bit blocks. */
 #define PRESENT_KEY_BLOCK_SIZE (PRESENT_KEY_BIT_SIZE / 16u)
 
+/*! Buffer size that holds the new values during the permutation stage. */
+#define PRESENT_PERMUTATION_BUFF_SIZE (PRESENT_CRYPT_BIT_SIZE / 16u)
+
 /*! Buffer size that holds the rotated blocks during left shift. */
 #if PRESENT_USE_KEY80
     #define PRESENT_ROTATE_BUFF_SIZE_LEFT (2u)
@@ -508,49 +511,34 @@ present_permutation(uint8_t *p_text, present_op_t op)
 static void
 present_encrypt_permutation(uint8_t *p_text)
 {
-    uint8_t buff[PRESENT_CRYPT_SIZE];
-    uint8_t base_bit;
-    uint8_t base_byte;
-    uint8_t bit_idx;
+    uint16_t buff[PRESENT_PERMUTATION_BUFF_SIZE] = {0u};
+    uint8_t  bit                                 = 0u;
+    uint8_t  byte                                = 0u;
 
     ASSERT(NULL != p_text);
 
-    /* Clear buffer first to do logical OR'ing directly. */
-    memset(buff, 0u, sizeof(buff));
-
-    base_bit  = 0u;
-    base_byte = 0u;
-    bit_idx   = 0u;
-
-    /* Every new byte has two bits from four bytes of the old text block.
-     * Even bits are from low and odd bits are from high nibbles. In every
-     * step of the loop, bit values are picked from related bytes.
+    /*
+     * Every new 16-bit block has two bits from every bytes of the old text
+     * block. Even bits are from low and odd bits are from high nibbles.
+     * In every step of the loop, bit values are picked from related bytes.
+     * For detailed explanation of the bit positioning, see the article.
      */
-    while (bit_idx < PRESENT_CRYPT_SIZE) {
-        buff[0] |= BITVAL(p_text[base_byte + 0], base_bit + 0u) << bit_idx;
-        buff[1] |= BITVAL(p_text[base_byte + 4], base_bit + 0u) << bit_idx;
+    while (byte < PRESENT_CRYPT_SIZE)
+    {
+        buff[0] |= BITVAL(p_text[byte], 0u) << (2 * bit);
+        buff[0] |= BITVAL(p_text[byte], 4u) << (2 * bit + 1);
 
-        buff[2] |= BITVAL(p_text[base_byte + 0], base_bit + 1u) << bit_idx;
-        buff[3] |= BITVAL(p_text[base_byte + 4], base_bit + 1u) << bit_idx;
+        buff[1] |= BITVAL(p_text[byte], 1u) << (2 * bit);
+        buff[1] |= BITVAL(p_text[byte], 5u) << (2 * bit + 1);
 
-        buff[4] |= BITVAL(p_text[base_byte + 0], base_bit + 2u) << bit_idx;
-        buff[5] |= BITVAL(p_text[base_byte + 4], base_bit + 2u) << bit_idx;
+        buff[2] |= BITVAL(p_text[byte], 2u) << (2 * bit);
+        buff[2] |= BITVAL(p_text[byte], 6u) << (2 * bit + 1);
 
-        buff[6] |= BITVAL(p_text[base_byte + 0], base_bit + 3u) << bit_idx;
-        buff[7] |= BITVAL(p_text[base_byte + 4], base_bit + 3u) << bit_idx;
+        buff[3] |= BITVAL(p_text[byte], 3u) << (2 * bit);
+        buff[3] |= BITVAL(p_text[byte], 7u) << (2 * bit + 1);
 
-        bit_idx++;
-
-        /* For odd indexes, set base bit to 4 to pick high nibble bit values
-         * and for even indexes, set it to 0 to pick low nibble bit values.
-         */
-        if (0u != (bit_idx % 2u)) {
-            base_bit = 4u;
-        }
-        else {
-            base_bit = 0u;
-            base_byte++;
-        }
+        bit++;
+        byte++;
     }
 
     /* Copy the new value to the cipher block. */
@@ -560,49 +548,34 @@ present_encrypt_permutation(uint8_t *p_text)
 static void
 present_decrypt_permutation(uint8_t *p_text)
 {
-    uint8_t buff[PRESENT_CRYPT_SIZE];
-    uint8_t base_bit;
-    uint8_t base_byte;
-    uint8_t bit_idx;
+    uint8_t   buff[PRESENT_CRYPT_SIZE] = {0u};
+    uint16_t *p_block                  = (uint16_t *)p_text;
+    uint8_t   bit                      = 0u;
+    uint8_t   byte                     = 0u;
 
     ASSERT(NULL != p_text);
 
-    /* Clear buffer first to do logical OR'ing directly. */
-    memset(buff, 0u, sizeof(buff));
-
-    base_bit  = 0u;
-    base_byte = 0u;
-    bit_idx   = 0u;
-
-    /* Every new byte has two bits from four bytes of the old text block.
-     * Low nibble values from even bits and high nibble values from odd bits.
-     * In every step of the loop, bit values are picked from related bytes.
+    /*
+     * Every new byte has two bits from every 16-bit blocks of the old
+     * permutated text. In every step of the loop, bit values are picked
+     * from related bytes. For detailed explanation of the bit positioning,
+     * see the article.
      */
-    while (bit_idx < PRESENT_CRYPT_SIZE) {
-        buff[0] |= BITVAL(p_text[base_byte + 0], base_bit + 0u) << bit_idx;
-        buff[1] |= BITVAL(p_text[base_byte + 0], base_bit + 2u) << bit_idx;
+    while (byte < PRESENT_CRYPT_SIZE) {
+        buff[byte] |= BITVAL(p_block[0], (2 * bit))     << 0u;
+        buff[byte] |= BITVAL(p_block[0], (2 * bit) + 1) << 4u;
 
-        buff[2] |= BITVAL(p_text[base_byte + 0], base_bit + 4u) << bit_idx;
-        buff[3] |= BITVAL(p_text[base_byte + 0], base_bit + 6u) << bit_idx;
+        buff[byte] |= BITVAL(p_block[1], (2 * bit))     << 1u;
+        buff[byte] |= BITVAL(p_block[1], (2 * bit) + 1) << 5u;
 
-        buff[4] |= BITVAL(p_text[base_byte + 1], base_bit + 0u) << bit_idx;
-        buff[5] |= BITVAL(p_text[base_byte + 1], base_bit + 2u) << bit_idx;
+        buff[byte] |= BITVAL(p_block[2], (2 * bit))     << 2u;
+        buff[byte] |= BITVAL(p_block[2], (2 * bit) + 1) << 6u;
 
-        buff[6] |= BITVAL(p_text[base_byte + 1], base_bit + 4u) << bit_idx;
-        buff[7] |= BITVAL(p_text[base_byte + 1], base_bit + 6u) << bit_idx;
+        buff[byte] |= BITVAL(p_block[3], (2 * bit))     << 3u;
+        buff[byte] |= BITVAL(p_block[3], (2 * bit) + 1) << 7u;
 
-        bit_idx++;
-
-        /* At the first index of the high nibble, reset the base byte and
-         * set base bit to 1 to get odd bit values.
-         */
-        if (0u == (bit_idx % 4u)) {
-            base_byte = 0u;
-            base_bit  = 1u;
-        }
-        else {
-            base_byte += 2u;
-        }
+        bit++;
+        byte++;
     }
 
     /* Copy the new value to the decipher block. */
