@@ -96,7 +96,7 @@ endif
 # MAKE RULES
 #------------------------------------------------------------------------------
 
-.PHONY: all build clean rebuild
+.PHONY: ${OUT} all build clean rebuild
 
 all: build ${OUT}
 	@echo "Project Build Successfully"
