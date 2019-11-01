@@ -37,7 +37,7 @@ ASM_GEN  =
 # The tag describes the search path for header files of the project. Multiple
 # paths could be added.
 
-INC_PATH = ${PROJ_PATH}/include ${PROJ_PATH}/conf
+INC_PATH = ${PROJ_PATH}/include ${PROJ_PATH}/conf ${PROJ_PATH}/vendor/unity
 
 # The tag describes the search path for library files of the project. Multiple
 # paths could be added.
