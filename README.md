@@ -26,11 +26,15 @@ project, or compiling as a static library via pre-included build system.
 
 To build the module as a static library, `TYPE` tag in the
 [Config.mk](build/Config.mk) file must be chosen as `SLIB`. Additional source
-files could be added by appending to `SRC` list in the
-[Source.mk](build/Source.mk) file.
+files could be added. The build system detects and adds those file directly
+to the source tree.
 
 Object files(and assembly files if the `ASM_GEN` flag is set) and out file
 are placed to `bin` folder.
+
+By default, the project has a test main file under the `test` folder.
+To adding custom main function, the `test_main.c` file must be excluded from
+the source tree.
 
 To build the project, at the project root folder, run:
 
@@ -63,7 +67,7 @@ test out files.
 To build test files, run:
 
 ```
-$ make test
+$ make
 ```
 
 ## Configuration
@@ -83,7 +87,7 @@ Additionally, tools used to build project could be configured via
 [Rules.mk](build/Rules.mk) file.
 
 __NOTE:__ Every compiler has different features and flags. Therefore,
-[Target.mk](build/Target.mk) and [Rules.mk](build/Rules.mk) files may have
+[Tools.mk](build/Tools.mk) and [Rules.mk](build/Rules.mk) files may have
 to be rewritten.
 
 ## License
