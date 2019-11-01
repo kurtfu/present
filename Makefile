@@ -3,19 +3,15 @@
 #------------------------------------------------------------------------------
 
 include build/Config.mk
-include build/Source.mk
 include build/Tools.mk
 
 #------------------------------------------------------------------------------
-#  CONFIGURATION ERROR CHECKS
+#  DEFAULT CONFIGURATION CHECKS
 #------------------------------------------------------------------------------
 
 ifndef PROJ
-    $(error "Project name must be specified!")
-endif
-
-ifndef TYPE
-    $(error "Output type must be specified!")
+    PROJ = $(notdir ${CURDIR})  # If not defined, set the project name same
+                                # with the root folder name.
 endif
 
 #------------------------------------------------------------------------------
@@ -27,11 +23,24 @@ ifeq (${OS}, Windows_NT)
 
     MKDIR = mkdir 2>nul     # Make directory and suspend any error.
     RMDIR = rd /s /q 2>nul  # Remove directory and suspend any error.
+
+    # Replace slashes due to the Windows path notation.
+    CURDIR := $(subst /,\,${CURDIR})
+
+    # Function that used to search source files.
+    define find
+        $(subst ${CURDIR},${PROJ_PATH},$(shell "where" 2>nul /r ${1} ${2}))
+    endef
 else
     SHELL = /bin/sh         # Shell that used by the host.
 
     MKDIR = mkdir -p        # Make directory and suspend any error.
     RMDIR = rm -rf          # Remove directory and suspend any error.
+
+    # Function that used to search source files.
+    define find
+        $(shell find ${1} -name "${2}")
+    endef
 endif
 
 #------------------------------------------------------------------------------
@@ -40,12 +49,20 @@ endif
 
 PROJ_PATH  = .
 BIN_PATH   = $(addsuffix /bin, ${PROJ_PATH})
-TEST_PATH  = $(addsuffix /test, ${PROJ_PATH})
 
 #------------------------------------------------------------------------------
 # INPUT & OUTPUT FILE DEFINITIONS
 #------------------------------------------------------------------------------
 
+SRC   = $(call find, ${PROJ_PATH},*.c)
+SRC  += $(call find, ${PROJ_PATH},*.s)
+
+# Replace slashes due to the Windows path notation.
+ifeq (${OS}, Windows_NT)
+	SRC := $(subst \,/,${SRC})
+endif
+
+SRC  := $(filter-out ${EXL_FILE}, ${SRC})
 SRC  := $(filter-out ${BIN_PATH}/%.s,${SRC})
 
 ASM   = $(patsubst ${PROJ_PATH}/%.c,${BIN_PATH}/%.s, ${SRC})
@@ -59,31 +76,27 @@ EXEC := $(addsuffix ${OUT_EXT}, ${EXEC})
 SLIB  = $(addprefix ${BIN_PATH}/, ${PROJ})
 SLIB := $(addsuffix .a, ${SLIB})
 
-TEST_ASM  = $(patsubst ${PROJ_PATH}/%.c,${BIN_PATH}/%.s, ${TEST_SRC})
-TEST_OBJ  = $(patsubst ${PROJ_PATH}/%.c,${BIN_PATH}/%.o, ${TEST_SRC})
-
-TEST_OUT  = $(addprefix ${BIN_PATH}/test/, ${PROJ})
-TEST_OUT := $(addsuffix ${OUT_EXT}, ${TEST_OUT})
-
 BUILD_DEPS = ${OBJ}
-TEST_DEPS  = ${TEST_OBJ}
 
 ifeq (${KEEP_ASM}, YES)
 	BUILD_DEPS += ${ASM}
-	TEST_DEPS  += ${TEST_ASM}
 endif
 
-ifeq (${TYPE}, EXEC)
+ifndef TYPE
 	OUT = ${EXEC}
-else ifeq (${TYPE}, SLIB)
-	OUT = ${SLIB}
+else
+    ifeq (${TYPE}, EXEC)
+        OUT = ${EXEC}
+    else ifeq (${TYPE}, SLIB)
+        OUT = ${SLIB}
+    endif
 endif
 
 #------------------------------------------------------------------------------
 # MAKE RULES
 #------------------------------------------------------------------------------
 
-.PHONY: all build clean rebuild test ${OUT}
+.PHONY: ${OUT} all build clean rebuild
 
 all: build ${OUT}
 	@echo "Project Build Successfully"
@@ -96,9 +109,6 @@ clean:
 	@echo "Project Cleaned Successfully"
 
 rebuild: clean all
-
-test: build ${TEST_OUT}
-	@echo "Test Project Build Successfully"
 
 #------------------------------------------------------------------------------
 # RULE INCLUDES
